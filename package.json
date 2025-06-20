@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "name": "projectbackend",
+  "version": "1.0.0",
+  "description": "this is backend project",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start" : "node app.js"
+  },
+  "author": "sameer K",
+  "license": "ISC"
+}
