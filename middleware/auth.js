@@ -10,7 +10,7 @@ const adminAuth = (req, res, next) => {
 
 const userAuth = (req, res, next) => {
   const token = "xyz";
-  const isUserAuthorised = token === "xz";
+  const isUserAuthorised = token === "xyz";
   if (!isUserAuthorised) {
     res.status(401).send("unauthorised user");
   } else {
