@@ -22,7 +22,7 @@ app.post("/signup", async (req, res) => {
   } catch (err) {
     res
       .status(400)
-      .send("User cannot be created, Plesde Try again after some time");
+      .send("User cannot be created, Plesde Try again after some time" +" "+ err);
   }
 });
 //New APi to find all user and also use by id or something
@@ -68,11 +68,23 @@ app.patch("/editUser", async (req, res) => {
   try {
     const userId = req.body.userId;
     const data = req.body;
-    const user = await User.findByIdAndUpdate({ _id: userId }, data);
+    const allowedUpdates = ["userId","photoUrl", "password", "age", "skills", "about"];
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      allowedUpdates.includes(k)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Updates Not allowed..");
+    }
+    if (data?.skills.length > 10) {
+      throw new Error("Skills cannot be more than 10");
+    }
+    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+      timestamps: true,
+    });
     res.send("user Updated successfully...");
   } catch (err) {
     console.log(err);
-    res.status(400).send("something went wrong...");
+    res.status(400).send("something went wrong..."+err.message);
   }
 });
 
