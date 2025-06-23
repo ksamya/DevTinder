@@ -2,6 +2,8 @@ const express = require("express");
 const connectDb = require("./config/database");
 const app = express();
 const User = require("./models/user");
+const bcrypt = require("bcrypt");
+const { validateSignupData } = require("./utills/validation");
 
 app.use(express.json()); //this line will read the dynamic data sent by the Frontend
 
@@ -12,17 +14,24 @@ app.post("/signup", async (req, res) => {
   //   emailId: "demo@kul.com",
   //   password: "demo@123",
   // });
-
-  //now we are sending a dynamic data
-
-  const user = new User(req.body);
   try {
+    //validation of a fields
+    validateSignupData(req);
+    const { firstName, lastName, emailId, password } = req.body;
+    //encryption of a password using bcrypt library
+    const passwordHash = await bcrypt.hash(password, 10);
+    //now we are sending a dynamic data
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
+
     await user.save(); //here we are storing the data into database using this line
     res.status(201).send("User is created successfully...."); //send a respose
   } catch (err) {
-    res
-      .status(400)
-      .send("User cannot be created, Plesde Try again after some time" +" "+ err);
+    res.status(400).send({ "ERROR:": err.message });
   }
 });
 //New APi to find all user and also use by id or something
@@ -68,7 +77,14 @@ app.patch("/editUser", async (req, res) => {
   try {
     const userId = req.body.userId;
     const data = req.body;
-    const allowedUpdates = ["userId","photoUrl", "password", "age", "skills", "about"];
+    const allowedUpdates = [
+      "userId",
+      "photoUrl",
+      "password",
+      "age",
+      "skills",
+      "about",
+    ];
     const isUpdateAllowed = Object.keys(data).every((k) =>
       allowedUpdates.includes(k)
     );
@@ -84,7 +100,28 @@ app.patch("/editUser", async (req, res) => {
     res.send("user Updated successfully...");
   } catch (err) {
     console.log(err);
-    res.status(400).send("something went wrong..."+err.message);
+    res.status(400).send("something went wrong..." + err.message);
+  }
+});
+
+//Login API
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    const user = await User.find({ emailId: emailId });
+    console.log(user, "===");
+    if (user.length === 0){
+      throw new Error("inValid credentials");
+    }
+    console.log(user[0].password, "----");
+    const passwordValidate = await bcrypt.compare(password, user[0].password);
+    if (passwordValidate) {
+      res.send("login successful!!!");
+    } else {
+      throw new Error("invalid credentials");
+    }
+  } catch (err) {
+    res.status(400).send("something went wrong..." + err.message);
   }
 });
 
