@@ -3,9 +3,13 @@ const connectDb = require("./config/database");
 const app = express();
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const { validateSignupData } = require("./utills/validation");
+const userAuth = require("./middleware/auth");
 
 app.use(express.json()); //this line will read the dynamic data sent by the Frontend
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   // const user = new User({
@@ -108,18 +112,27 @@ app.patch("/editUser", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { emailId, password } = req.body;
-    const user = await User.find({ emailId: emailId });
-    console.log(user, "===");
-    if (user.length === 0){
-      throw new Error("inValid credentials");
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentials");
     }
-    console.log(user[0].password, "----");
-    const passwordValidate = await bcrypt.compare(password, user[0].password);
+    const passwordValidate = await user.validatePassword(password);
     if (passwordValidate) {
+      const token = await user.getJWT();
+      res.cookie("token", token);
       res.send("login successful!!!");
     } else {
       throw new Error("invalid credentials");
     }
+  } catch (err) {
+    res.status(400).send("something went wrong..." + err.message);
+  }
+});
+
+app.get("/getProfile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send("profile details are of" + user);
   } catch (err) {
     res.status(400).send("something went wrong..." + err.message);
   }

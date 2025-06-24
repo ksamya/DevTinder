@@ -1,6 +1,7 @@
-const { type } = require("express/lib/response");
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 //here we created a schema which is a structure or a blue print of what type a document is should be inside a collection
 const userSchema = new mongoose.Schema(
@@ -22,12 +23,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      validate(value){
-        if(!validator.isEmail(value)){
+      validate(value) {
+        if (!validator.isEmail(value)) {
           throw new Error("invalid email id");
-          
         }
-      }
+      },
     },
     password: {
       type: String,
@@ -112,6 +112,20 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+console.log("222");
+userSchema.methods.validatePassword = async function (inputPassword) {
+  return await bcrypt.compare(inputPassword, this.password);
+};
+
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  const token = await jwt.sign({ _id: user._id }, "key@123SK", {
+    expiresIn: "1d",
+  });
+  return token;
+};
+
+
 
 //To communicate with DB we need to use Module
 
