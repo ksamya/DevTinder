@@ -13,7 +13,7 @@ requestRouter.post(
       const toUserId = req.params.toUserId;
       const requestStatus = req.params.status;
 
-      console.log(fromUserId, "ii", toUserId, "000", requestStatus);
+      // console.log(fromUserId, "ii", toUserId, "000", requestStatus);
       //check status should be either ignored or interested
       const allowedStatus = ["ignored", "interested"];
       if (!allowedStatus.includes(requestStatus)) {
@@ -53,6 +53,40 @@ requestRouter.post(
       }
     } catch (err) {
       res.send("ERROR: " + err);
+    }
+  }
+);
+
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
+      //validate status
+      const allowedStatus = ["accepted", "reject"];
+      console.log(status, "999");
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({ message: "invalid status" });
+      }
+      //find connection request in DB
+      const connectionRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+      if (!connectionRequest) {
+        return res
+          .status(404)
+          .json({ message: "connection request not found" });
+      } //update the status record
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+
+      res.json({ message: "request is ", data });
+    } catch (err) {
+      res.status(400).send("ERROR: " + err);
     }
   }
 );

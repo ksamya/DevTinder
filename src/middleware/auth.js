@@ -12,7 +12,7 @@ const userAuth = async (req, res, next) => {
     const { _id } = validateToken;
     const user = await User.findById({ _id });
     req.user = user;
-    console.log(req.user,'0000000000');
+    // console.log(req.user,'0000000000');
     next();
   } catch (err) {
     res.status(400).send("something went wrong..." + err.message);

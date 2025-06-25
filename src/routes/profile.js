@@ -65,7 +65,7 @@ profileRouter.get("/user", userAuth, async (req, res) => {
 });
 
 //API to find all user from database
-profileRouter.get("/feed", userAuth, async (req, res) => {
+profileRouter.get("/userList", userAuth, async (req, res) => {
   try {
     const user = await User.find({});
     res.send(user);
