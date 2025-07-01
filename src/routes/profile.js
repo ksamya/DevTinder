@@ -30,7 +30,7 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
 profileRouter.get("/getProfile", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    res.send("profile details are of" + user);
+    res.send(user);
   } catch (err) {
     res.status(400).send("something went wrong..." + err.message);
   }
